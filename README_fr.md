@@ -114,7 +114,7 @@ $ mkdir -p oldrootfs
 Ici, la racine absolue du nouveau namespace de montage sera le point de montage que nous avons créé pour le nouveau système de fichiers racine.
 
 ```
-$ pivot_root . oldrootfs
+$ /sbin/pivot_root . oldrootfs
 cd /
 ```
 

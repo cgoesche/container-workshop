@@ -116,7 +116,7 @@ $ mkdir -p oldrootfs
 Here the new mount namespace's absolute root will be the mount point we created for the new root filesystem.
 
 ```Bash
-$ pivot_root . oldrootfs
+$ /sbin/pivot_root . oldrootfs
 cd /
 ```
 
