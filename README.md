@@ -9,7 +9,7 @@ This guide will help you achieve the different learning objectives presented dur
 
 #### Check kernel namespace and cgroupv2 support
 
-To successfully create a basic container-like process some kernel features have to be enabled on your running system. You can check these by running the command below and confirming the output is the same.
+To successfully create a basic container-like environment, some kernel features have to be enabled on your running system. You can check these by running the command below and confirming the output is the same.
 
 ```Bash
 # namespaces
@@ -201,4 +201,19 @@ Set maximum amount of additional processes
 $ echo 10 | sudo tee /sys/fs/cgroup/container-group/pids.max
 ```
 
+Add our new namespaced process to the cgroup
+```
+# Retrieve the PID
+$ pgrep unshare
+428163
+$ pstree -p 428163
+unshare(428163)───bash(428166)
+
+$ echo 428166 | sudo tee /sys/fs/cgroup/container-group/cgroup.procs
+```
+
+Test the PID resource limit
+```
+$ for i in {1..10}; do (echo "Proc $i"; sleep 1000; ) &  done
+```
 

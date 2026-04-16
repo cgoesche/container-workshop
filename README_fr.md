@@ -201,3 +201,21 @@ Définir le nombre maximum de processus
 ```
 $ echo 10 | sudo tee /sys/fs/cgroup/container-group/pids.max
 ```
+
+Ajouter notre nouveau processus (isolé par namespace) au cgroup
+```
+# Obtenir le PID
+$ pgrep unshare
+428163
+
+$ pstree -p 428163
+unshare(428163)───bash(428166)
+
+# Rajouter le PID au cgroup
+$ echo 428166 | sudo tee /sys/fs/cgroup/container-group/cgroup.procs
+```
+
+Tester la limite de ressources PID
+```
+$ for i in {1..10}; do (echo "Proc $i"; sleep 1000; ) &  done
+```
