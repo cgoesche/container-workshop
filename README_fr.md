@@ -3,15 +3,15 @@
 
 ### Description
 
-Ce guide vous aidera à atteindre les différents objectifs d'apprentissage présentés lors de l'atelier. Il propose une démonstration pratique des mécanismes fondamentaux permettant la création des conteneurs d'aujourd'hui, ce qui, nous l'espérons, facilitera votre compréhension.
+Ce guide vous aidera à atteindre les différents objectifs présentés lors de l'atelier et vous offrira une démonstration pratique des mécanismes fondamentaux permettant la création des conteneurs d'aujourd'hui. Nous espérons qu'il vous aidera également à répondre à certaines questions complexes sur ce sujet.
 
 ### Prérequis
 
 #### Vérifier le support des namespaces du noyau et de cgroupv2
 
-Pour réussir la création d'un processus de base de type conteneur, certaines fonctionnalités du noyau doivent être activées sur votre système. Vous pouvez les vérifier en exécutant la commande ci-dessous et en confirmant que la sortie est identique.
-Code-Snippet
+Pour réussir la création d'un environment similaire a un container, certaines fonctionnalités du noyau doivent être activées sur votre système. Vous pouvez les vérifier en exécutant la commande ci-dessous et en confirmant que la sortie est identique.
 
+```
 # namespaces
 $ grep -E '^CONFIG_(UTS|USER|PID)_NS' /boot/config-$(uname -r)
 CONFIG_UTS_NS=y
@@ -21,11 +21,11 @@ CONFIG_PID_NS=y
 # cgroupv2
 $ mount -l | grep cgroup
 cgroup2 on /sys/fs/cgroup type cgroup2
+```
 
 #### Paramètres du user namespace
 
 Certaines distributions n'autorisent pas la création de namespaces utilisateur par des utilisateurs non privilégiés. La valeur de la sortie doit être supérieure à 0.
-Code-Snippet
 
 ```
 $ cat /proc/sys/user/max_user_namespaces
@@ -34,7 +34,6 @@ $ sysctl -n user.max_user_namespaces
 ```
 
 Si la valeur n'est pas supérieure à 0, exécutez la commande suivante :
-
 
 ```
 $ sudo sysctl -w user.max_user_namespaces=10000

@@ -3,7 +3,7 @@
 
 ### Description
 
-This guide will help you achieve the different learning objectives presented during the workshop and give you a practical demonstration of the foundational mechanisms allowing the creation of today's containers, which, hopefully, helps your understanding and 
+This guide will help you achieve the different learning objectives presented during the workshop and give you a practical demonstration of the foundational mechanisms allowing the creation of today's containers, and, hopefully, help you answer some confusing questions around this topic.
 
 ### Prerequisites
 
@@ -50,7 +50,7 @@ $ sudo apt install mkosi
 
 ### Building the container
 
-After running the commands below we will achieve the creation of a basic unprivileged container based on Fedora 45 Rawhide with internet connectivity and root level privileges inside of the container.
+After running the commands below we will achieve the creation of a basic unprivileged container based on Debian 13 (Trixie) with internet connectivity and root level privileges inside of the container.
 
 #### Creating the root filesystem
 
