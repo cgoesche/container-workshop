@@ -69,13 +69,15 @@ Nous allons définir quelques variables d'environnement pour le mappage des iden
 ```
 $ cat /etc/subuid
 username:524288:65536
-export START_UID_HOST="524288"
-export UID_MAP_RANGE_SIZE="65536"
+
+$ export START_UID_HOST="524288"
+$ export UID_MAP_RANGE_SIZE="65536"
 
 $ cat /etc/subgid
 username:524288:65536
-export START_GID_HOST="524288"
-export GID_MAP_RANGE_SIZE="65536"
+
+$ export START_GID_HOST="524288"
+$ export GID_MAP_RANGE_SIZE="65536"
 ```
 
 Ce qui précède signifie que nous pouvons mapper jusqu'à 65536 UID dans le nouveau namespace utilisateur, en commençant par l'UID 524288 sur l'hôte. Il en va de même pour les GID.

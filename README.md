@@ -69,13 +69,15 @@ We will set some environment variables for the user/group id mappings that are g
 ```Bash
 $ cat /etc/subuid
 username:524288:65536
-export START_UID_HOST="524288"
-export UID_MAP_RANGE_SIZE="65536"
+
+$ export START_UID_HOST="524288"
+$ export UID_MAP_RANGE_SIZE="65536"
 
 $ cat /etc/subgid
 username:524288:65536
-export START_GID_HOST="524288"
-export GID_MAP_RANGE_SIZE="65536"
+
+$ export START_GID_HOST="524288"
+$ export GID_MAP_RANGE_SIZE="65536"
 ```
 
 What the above means is that we can start mapping up to `65536` UIDs in the new user namespace starting from the UID `524288` on the host. The same goes for the GIDs.
