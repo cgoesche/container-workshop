@@ -87,7 +87,7 @@ Ce qui précède signifie que nous pouvons mapper jusqu'à 65536 UID dans le nou
 Nous allons créer quatre nouveaux namespaces, à savoir PID, UTS, mount et User, et y lancer bash comme premier processus.
 
 ```
-$ unshare --fork --kill-child --pid --uts --mount --mount-proc --user --map-users=0:1${UID}:1 --map-users=1:${START_HOST_UID}:${UID_MAP_RANGE_SIZE} --map-groups=0:${UID}$:1 --map-groups=1:${START_HOST_GID}:${GID_MAP_RANGE_SIZE} bash --norc --noprofile
+$ unshare --fork --kill-child --pid --uts --mount --mount-proc --user --map-users=0:${UID}:1 --map-users=1:${START_HOST_UID}:${UID_MAP_RANGE_SIZE} --map-groups=0:${UID}:1 --map-groups=1:${START_HOST_GID}:${GID_MAP_RANGE_SIZE} bash --norc --noprofile
 ```
 
 Définissez le drapeau de propagation de montage pour le nouveau namespace de montage de manière récursive sur "private". Ceci est important car nous ne voulons pas que les opérations de montage soient visibles dans le namespace de montage parent (hôte). Cela est également nécessaire pour que pivot_root fonctionne, car l'échange des systèmes de fichiers racines affecterait sinon le namespace de montage de l'hôte et provoquerait une erreur.

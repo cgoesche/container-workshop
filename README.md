@@ -87,7 +87,7 @@ What the above means is that we can start mapping up to `65536` UIDs in the new 
 We are going to create four new namespaces, namely PID, UTS, mount and User and launch `bash` as first process in it.
 
 ```Bash
-$ unshare --fork --kill-child --pid --uts --mount --mount-proc --user --map-users=0:1${UID}:1 --map-users=1:${START_HOST_UID}:${UID_MAP_RANGE_SIZE} --map-groups=0:${UID}$:1 --map-groups=1:${START_HOST_GID}:${GID_MAP_RANGE_SIZE} bash --norc --noprofile
+$ unshare --fork --kill-child --pid --uts --mount --mount-proc --user --map-users=0:${UID}:1 --map-users=1:${START_HOST_UID}:${UID_MAP_RANGE_SIZE} --map-groups=0:${UID}:1 --map-groups=1:${START_HOST_GID}:${GID_MAP_RANGE_SIZE} bash --norc --noprofile
 ```
 
 
