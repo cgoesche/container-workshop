@@ -41,12 +41,15 @@ sudo sysctl -w user.max_user_namespaces=10000
 sudo dnf install mkosi
 # Debian/Ubuntu
 sudo apt install mkosi
-# Suse
-sudo zypper install mkosi
 ```
 
+## Building the container
 
-### Create the root filesystem
+After running the commands below we will achieve the creation of a basic unprivileged container based on Fedora 45 Rawhide with internet connectivity and root level privileges inside of the container.
+
+### Creating the root filesystem
+
+The configuration for `mkosi` can be found in `mkosi.conf`.
 
 ```Bash
 mkosi clean
@@ -55,84 +58,101 @@ mkosi
 
 ### User/group ID mapping
 
+We will set some environment variables for the user/group id mappings that are going to be useful in a later command.
+
 ```Bash
 $ cat /etc/subuid
+username:524288:65536
+export START_UID_HOST="524288"
+export UID_MAP_RANGE_SIZE="65536"
+
 $ cat /etc/subgid
+username:524288:65536
+export START_GID_HOST="524288"
+export GID_MAP_RANGE_SIZE="65536"
 ```
+
+What the above means is that we can start mapping up to `65536` UIDs in the new user namespace starting from the UID `524288` on the host. The same goes for the GIDs.
 
 #### Create a process and its new namespaces
 
+We are going to create four new namespaces, namely PID, UTS, mount and User and launch `bash` as first process in it.
+
 ```Bash
-unshare --fork --kill-child --pid --uts --time --mount --mount-proc --user --map-users=0:1000:1 --map-users=1:524288:65536 --map-groups=0:1000:1 --map-groups=1:524288:65536 bash --norc --noprofile
+unshare --fork --kill-child --pid --uts --mount --mount-proc --user --map-users=0:1${UID}:1 --map-users=1:${START_HOST_UID}:${UID_MAP_RANGE_SIZE} --map-groups=0:${UID}$:1 --map-groups=1:${START_HOST_GID}:${GID_MAP_RANGE_SIZE} bash --norc --noprofile
 ```
 
 
-Set the mount propagation flag for the new mount namespace recursively to private. This is important as we do not want any mount operations to be seen in the parent (host) mount namespace.
+Set the mount propagation flag for the new mount namespace recursively to private. This is important as we do not want any mount operations to be seen in the parent (host) mount namespace. It is also necessary to make `pivot_root` work as the swap of root file systems would otherwise affect the host mount namespace and cause an error.
 
 ```Bash
 mount --make-rprivate /
 ```
 
+#### Prepare the new root fs
 
-#### Prepare the new root
+The tool we will use to swap the root file system mount point (`pivot_root`) requires an actual mount point as argument for the `new rootfs`, thus we will turn the directory of our rootfs
+into an actual mount point to then perform the swap.
 
-The reaso
+We also create a directory `oldrootfs` where we will mount the old root filesystem, so we can detach it later.
 
 ```Bash
-mount --bind /tmp/my-rootfs /tmp/my-rootfs
-cd /tmp/my-rootfs
+cd mkosi.output
+mount --bind container-rootfs/ container-rootfs/
+cd container-rootfs/
 mkdir -p oldrootfs
 ```
 
 #### Pivot the root file systems
+
+Here the new mount namespace's absolute root will be the mount point we created for the new root filesystem.
 
 ```Bash
 pivot_root . oldrootfs
 cd /
 ```
 
-#### Mount Proc filesystems
+#### Mount proc filesystem
+
+ The proc filesystem is a pseudo-filesystem which provides an interface to kernel data structures, essentially showing process and system information.
 
 ```Bash
 mount -t proc proc /proc
-mount -t sysfs sys /sys
 ```
 
 #### Prepare /dev
 
+This is needed because we cannot create device nodes like the terminal multiplexer on the bare directory that is bound to the host's mount namespace. Therefore we have to create a clean slate in our mount namespace that is easily disposed after boot, thus the `tmpfs`. The `nosuid` is for defense-in-depth, as we don't want to create binaries that can escalate privileges on the host, in this case to our own user.
+
 ```Bash
 mount -t tmpfs -o mode=755,nosuid tmpfs /dev
-mkdir -p /dev/pts
 ```
 
 #### Create a new pseudo-terminal multiplexer instance dedicated for this namespace
 
+Having a pseudo-terminal multiplexer instance dedicated for this new mount namespace removes the risk of sharing the same as the host's which can lead to unintended security concerns.
+
 ```Bash
+mkdir -p /dev/pts
 mount -t devpts devpts dev/pts/ -o newinstance,ptmxmode=0666,mode=620
-# Most applications look for /dev/ptmx to create pseudo-terminals
+# A lot of applications still look for the legacy location `/dev/ptmx` to create pseudo-terminals
 ln -s /dev/pts/ptmx /dev/ptmx
 ```
 
 #### Populating /dev
 
+We borrow the already created /dev nodes in the host's root file system and create a mount point for them in our container.
+
 ```Bash
-touch /dev/zero
+touch /dev/{null,random,zero}
+mount --bind /oldrootfs/dev/null /dev/null
+mount --bind /oldrootfs/dev/random /dev/random
 mount --bind /oldrootfs/dev/zero /dev/zero
 ```
 
-```Bash
-touch /dev/null
-mount --bind /oldrootfs/dev/null /dev/null
-```
 
-```Bash
-touch /dev/random
-mount --bind /oldrootfs/dev/random /dev/random
-```
-
-
-This will work for all processes in that namespace as /proc/self
-will resolve dynamically to the calling process
+The commands below create files that resolve to each process's file descriptors 0,1 and 2, as the kernel dynamically resolves `self` to the calling process's PID.
+`/dev/{stdin,sdtout,stderr}` are needed for the proper functioning of I/O of some commands like `bash`, `sed`, or `grep`.
 ```Bash
 ln -s /proc/self/fd /dev/fd
 ln -s /proc/self/fd/0 /dev/stdin
@@ -142,6 +162,7 @@ ln -s /proc/self/fd/2 /dev/stderr
 
 #### Detach the old host root filesystem from the file hierarchy
 
+This will also make all mount points reachable via the old root file system invisible.
 ```Bash
 umount -l /oldrootfs
 rmdir /oldrootfs
@@ -149,6 +170,7 @@ rmdir /oldrootfs
 
 #### Re-initialize the shell in the new environment
 
+Doing this will ensure we are running the bash binary from the new root file system we created earlier, detaching the handle we had to the one we ran from the old root fs, giving us the new clean and isolated container environment we need.
 ```Bash
 exec /bin/bash --norc --noprofile
 ```
