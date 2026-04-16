@@ -58,6 +58,7 @@ Après avoir exécuté les commandes ci-dessous, nous parviendrons à la créati
 La configuration pour mkosi se trouve dans le fichier mkosi.conf.
 
 ```
+$ mkdir mkosi.output
 $ mkosi clean
 $ mkosi
 ```

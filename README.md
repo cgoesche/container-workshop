@@ -57,6 +57,7 @@ After running the commands below we will achieve the creation of a basic unprivi
 The configuration for `mkosi` can be found in `mkosi.conf`.
 
 ```Bash
+$ mkdir mkosi.output
 $ mkosi clean
 $ mkosi
 ```
